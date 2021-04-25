@@ -2,14 +2,15 @@
 # Analyzing World Happiness Report
 # https://www.kaggle.com/unsdsn/world-happiness
 
+rm(list=ls())
+
 library("tidyverse")
 library("tidyr")
 library("ggplot2")
 library("ggthemes")
 
 # Set Working Directory + Import Data
-rm(list=ls())
-setwd("~/Coding/School/73265/Final_Project")
+setwd("~/Coding/School/73265/73265-Final-Project")
 data2015 <- read_csv("archive/2015.csv")
 data2019 <- read_csv("archive/2019.csv")
 
@@ -103,3 +104,105 @@ data2015_longer %>%
           panel.grid.major.y = element_blank(),
           panel.grid.minor.y = element_blank(),
     ) 
+
+#######################################################
+###         EXPLORING REGIONAL DIFFERENCES          ###
+#######################################################
+
+regions <- c("North America", "Latin America and Caribbean",
+             "Western Europe", "Central and Eastern Europe",
+             "Australia and New Zealand",
+             "Middle East and Northern Africa", 
+             "Sub-Saharan Africa", "Eastern Asia",
+             "Southern Asia", "Southeastern Asia")
+
+# Arrange 2015 data by Region
+data2015 <- data2015 %>%
+  transform(Region=factor(Region,levels=regions)) %>%
+  arrange(Region)
+
+# GDP Per Capita
+graph_economy <- data2015 %>%
+  ggplot(aes(x=Economy, y=Happiness)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 5) +
+  theme_bw() + 
+  labs(x = "GDP Per Capita Contribution as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Happiness Score vs GDP Per Capita Contribution") + 
+  theme(plot.title = element_text(size = 16)) 
+
+# Health (Life Expectancy)
+graph_health <- data2015 %>%
+  ggplot(aes(x=Health, y=Happiness)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 5) +
+  theme_bw() + 
+  labs(x = "Life Expectancy Contribution as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Happiness Score vs Life Expectancy Contribution") + 
+  theme(plot.title = element_text(size = 16)) 
+
+# Social Support
+graph_social <- data2015 %>%
+  ggplot(aes(x=Social, y=Happiness)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 5) +
+  theme_bw() + 
+  labs(x = "Social Support Contribution as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Happiness Score vs Social Support") + 
+  theme(plot.title = element_text(size = 16)) 
+
+# Freedom
+graph_freedom <- data2015 %>%
+  ggplot(aes(x=Freedom, y=Happiness)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 5) +
+  theme_bw() + 
+  labs(x = "Freedom of Choice Contribution as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Happiness Score vs Freedom of Choice") + 
+  theme(plot.title = element_text(size = 16)) 
+
+# Perception of Corruption
+graph_trust <- data2015 %>%
+  ggplot(aes(x=Trust, y=Happiness)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 5) +
+  theme_bw() + 
+  labs(x = "Perception of Corruption Contribution as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Happiness Score vs Perception of Corruption Contribution") + 
+  theme(plot.title = element_text(size = 16)) 
+
+graph_generosity <- data2015 %>%
+  ggplot(aes(x=Generosity, y=Happiness)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 5) +
+  theme_bw() + 
+  labs(x = "Generosity as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Happiness Score vs Generosity Contribution") + 
+  theme(plot.title = element_text(size = 16)) 
+
+# All the Graphs
+graph_economy
+graph_health
+graph_social
+graph_freedom
+graph_trust
+graph_generosity
+
