@@ -8,6 +8,7 @@ library("tidyverse")
 library("tidyr")
 library("ggplot2")
 library("ggthemes")
+library("car")
 
 # Set Working Directory + Import Data
 setwd("~/Coding/School/73265/73265-Final-Project")
@@ -109,21 +110,35 @@ data2015_longer %>%
 ###         EXPLORING REGIONAL DIFFERENCES          ###
 #######################################################
 
-regions <- c("North America", "Latin America and Caribbean",
-             "Western Europe", "Central and Eastern Europe",
-             "Australia and New Zealand",
+regions <- c("North America", 
              "Middle East and Northern Africa", 
-             "Sub-Saharan Africa", "Eastern Asia",
-             "Southern Asia", "Southeastern Asia")
+             "Western Europe",
+             "Eastern Asia",
+             "Australia and New Zealand",
+             "Latin America and Caribbean",
+             "Sub-Saharan Africa",
+             "Central and Eastern Europe",
+             "Southern Asia", 
+             "Southeastern Asia")
 
-# Arrange 2015 data by Region
+# Arrange Data by Region
 data2015 <- data2015 %>%
   transform(Region=factor(Region,levels=regions)) %>%
   arrange(Region)
+data2019 <- data2019 %>%
+  transform(Region=factor(Region,levels=regions)) %>%
+  arrange(Region)
+
+# Name Aliases
+data <- rbind(data2015, data2019)
+
+# Colors 
+coolors <- c("#6C91C2", "#955737", "#78C091", "#AB3C04", "#AB3C04",
+             "#6C91C2", "#955737", "#78C091", "#AB3C04", "#AB3C04")
 
 # GDP Per Capita
-graph_economy <- data2015 %>%
-  ggplot(aes(x=Economy, y=Happiness)) + 
+graph_economy <- data %>%
+  ggplot(aes(x=Economy, y=Happiness, color=Region)) + 
   geom_point() +
   geom_smooth(method="lm") +
   scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
@@ -132,10 +147,12 @@ graph_economy <- data2015 %>%
   labs(x = "GDP Per Capita Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs GDP Per Capita Contribution") + 
-  theme(plot.title = element_text(size = 16)) 
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
+  scale_color_manual(values = coolors)
 
 # Health (Life Expectancy)
-graph_health <- data2015 %>%
+graph_health <- data %>%
   ggplot(aes(x=Health, y=Happiness)) + 
   geom_point() +
   geom_smooth(method="lm") +
@@ -145,10 +162,11 @@ graph_health <- data2015 %>%
   labs(x = "Life Expectancy Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Life Expectancy Contribution") + 
-  theme(plot.title = element_text(size = 16)) 
+  theme(plot.title = element_text(size = 16)) +
+  scale_color_manual(values = coolors)
 
 # Social Support
-graph_social <- data2015 %>%
+graph_social <- data %>%
   ggplot(aes(x=Social, y=Happiness)) + 
   geom_point() +
   geom_smooth(method="lm") +
@@ -158,10 +176,11 @@ graph_social <- data2015 %>%
   labs(x = "Social Support Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Social Support") + 
-  theme(plot.title = element_text(size = 16)) 
+  theme(plot.title = element_text(size = 16)) +
+  scale_color_manual(values = coolors)
 
 # Freedom
-graph_freedom <- data2015 %>%
+graph_freedom <- data %>%
   ggplot(aes(x=Freedom, y=Happiness)) + 
   geom_point() +
   geom_smooth(method="lm") +
@@ -171,10 +190,11 @@ graph_freedom <- data2015 %>%
   labs(x = "Freedom of Choice Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Freedom of Choice") + 
-  theme(plot.title = element_text(size = 16)) 
+  theme(plot.title = element_text(size = 16)) +
+  scale_color_manual(values = coolors)
 
 # Perception of Corruption
-graph_trust <- data2015 %>%
+graph_trust <- data %>%
   ggplot(aes(x=Trust, y=Happiness)) + 
   geom_point() +
   geom_smooth(method="lm") +
@@ -184,9 +204,10 @@ graph_trust <- data2015 %>%
   labs(x = "Perception of Corruption Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Perception of Corruption Contribution") + 
-  theme(plot.title = element_text(size = 16)) 
+  theme(plot.title = element_text(size = 16)) +
+  scale_color_manual(values = coolors)
 
-graph_generosity <- data2015 %>%
+graph_generosity <- data %>%
   ggplot(aes(x=Generosity, y=Happiness)) + 
   geom_point() +
   geom_smooth(method="lm") +
@@ -196,7 +217,8 @@ graph_generosity <- data2015 %>%
   labs(x = "Generosity as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Generosity Contribution") + 
-  theme(plot.title = element_text(size = 16)) 
+  theme(plot.title = element_text(size = 16)) +
+  scale_color_manual(values = coolors)
 
 # All the Graphs
 graph_economy
@@ -205,4 +227,38 @@ graph_social
 graph_freedom
 graph_trust
 graph_generosity
+
+#########################################################
+###         WESTERN EU VS SUB-SAHARAN AFRICA          ###
+#########################################################
+
+# Here, we talk more about some of the key patterns that we see, as 
+# well as their differences in terms of linear regression.
+
+# Conventionally, you think of happy countries like Western Europe 
+# like Switzerland, Finland, etc. When you think of less happy countries
+# you may think of places like Africa, where disease and poverty run rampant.
+# We can explore that more in our visualizations. Namely, we can explore
+# the regressions being done with regards to generosity.
+
+# HOW WESTERN EU AND SUB-SAHARAN AFRICA ARE SIMILAR
+# When we look at the visual of happiness score vs life expectancy, we see 
+# pretty consistently across the world that a longer life tends to lead to 
+# a higher happiness score. Let's look at the linear regression models for 
+# the West EU
+
+eu <- data %>% filter(Region == "Western Europe")
+af <- data %>% filter(Region == "Sub-Saharan Africa")
+
+eu_health <- lm(Happiness ~ Health, eu)
+af_health <- lm(Happiness ~ Health, af)
+
+# Checking Conditions of OLS
+residualPlot(eu_health)
+residualPlot(af_health)
+qqPlot(eu_health)
+qqPlot(af_health)
+
+summary(eu_health)
+summary(af_health)
 
