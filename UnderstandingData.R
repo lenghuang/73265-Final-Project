@@ -8,6 +8,7 @@ library("tidyverse")
 library("tidyr")
 library("ggplot2")
 library("ggthemes")
+library("ggpubr")
 library("car")
 
 # Set Working Directory + Import Data
@@ -153,7 +154,7 @@ graph_economy <- data %>%
 
 # Health (Life Expectancy)
 graph_health <- data %>%
-  ggplot(aes(x=Health, y=Happiness)) + 
+  ggplot(aes(x=Health, y=Happiness, color=Region)) + 
   geom_point() +
   geom_smooth(method="lm") +
   scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
@@ -162,12 +163,13 @@ graph_health <- data %>%
   labs(x = "Life Expectancy Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Life Expectancy Contribution") + 
-  theme(plot.title = element_text(size = 16)) +
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
   scale_color_manual(values = coolors)
 
 # Social Support
 graph_social <- data %>%
-  ggplot(aes(x=Social, y=Happiness)) + 
+  ggplot(aes(x=Social, y=Happiness, color=Region)) + 
   geom_point() +
   geom_smooth(method="lm") +
   scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
@@ -176,12 +178,13 @@ graph_social <- data %>%
   labs(x = "Social Support Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Social Support") + 
-  theme(plot.title = element_text(size = 16)) +
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
   scale_color_manual(values = coolors)
 
 # Freedom
 graph_freedom <- data %>%
-  ggplot(aes(x=Freedom, y=Happiness)) + 
+  ggplot(aes(x=Freedom, y=Happiness, color=Region)) + 
   geom_point() +
   geom_smooth(method="lm") +
   scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
@@ -190,12 +193,13 @@ graph_freedom <- data %>%
   labs(x = "Freedom of Choice Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Freedom of Choice") + 
-  theme(plot.title = element_text(size = 16)) +
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
   scale_color_manual(values = coolors)
 
 # Perception of Corruption
 graph_trust <- data %>%
-  ggplot(aes(x=Trust, y=Happiness)) + 
+  ggplot(aes(x=Trust, y=Happiness, color=Region)) + 
   geom_point() +
   geom_smooth(method="lm") +
   scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
@@ -204,11 +208,13 @@ graph_trust <- data %>%
   labs(x = "Perception of Corruption Contribution as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Perception of Corruption Contribution") + 
-  theme(plot.title = element_text(size = 16)) +
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
   scale_color_manual(values = coolors)
 
+# Generosity
 graph_generosity <- data %>%
-  ggplot(aes(x=Generosity, y=Happiness)) + 
+  ggplot(aes(x=Generosity, y=Happiness, color=Region)) + 
   geom_point() +
   geom_smooth(method="lm") +
   scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
@@ -217,16 +223,17 @@ graph_generosity <- data %>%
   labs(x = "Generosity as Proportion of Happiness",
        y = "Happiness Score (0-10)",
        title = "Happiness Score vs Generosity Contribution") + 
-  theme(plot.title = element_text(size = 16)) +
-  scale_color_manual(values = coolors)
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
+  scale_color_manual(values = coolors) 
 
 # All the Graphs
-graph_economy
-graph_health
-graph_social
-graph_freedom
-graph_trust
-graph_generosity
+#graph_economy
+#graph_health
+#graph_social
+#graph_freedom
+#graph_trust
+#graph_generosity
 
 #########################################################
 ###         WESTERN EU VS SUB-SAHARAN AFRICA          ###
@@ -250,15 +257,46 @@ graph_generosity
 eu <- data %>% filter(Region == "Western Europe")
 af <- data %>% filter(Region == "Sub-Saharan Africa")
 
-eu_health <- lm(Happiness ~ Health, eu)
-af_health <- lm(Happiness ~ Health, af)
+summary(lm(Happiness ~ Economy, eu))
+summary(lm(Happiness ~ Economy, af))
 
-# Checking Conditions of OLS
-residualPlot(eu_health)
-residualPlot(af_health)
-qqPlot(eu_health)
-qqPlot(af_health)
+# Graph Just The Two Regressions for GDP
+data %>%
+  filter(Region == "Western Europe" 
+       | Region == "Sub-Saharan Africa") %>%
+  ggplot(aes(x=Economy, y=Happiness, color=Region)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  stat_cor(label.y = 9) +
+  stat_regline_equation(label.y = 8.3) +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 2) +
+  theme_bw() + 
+  labs(x = "GDP Per Capita Contribution as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Comparing GDP Impact on Happiness (Western EU vs Sub-Sahara)") + 
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
+  scale_color_manual(values = c("#78C091","#955737")) 
 
-summary(eu_health)
-summary(af_health)
+summary(lm(Trust ~ Economy, eu))
+summary(lm(Trust ~ Economy, af))
 
+# Graph Just The Two Regressions for Trust
+data %>%
+  filter(Region == "Western Europe" 
+         | Region == "Sub-Saharan Africa") %>%
+  ggplot(aes(x=Trust, y=Happiness, color=Region)) + 
+  geom_point() +
+  geom_smooth(method="lm") +
+  stat_cor(label.y = 9) +
+  stat_regline_equation(label.y = 8.3) +
+  scale_y_continuous(limits = c(0, 10), expand = c(0, 0)) +
+  facet_wrap(~ Region, ncol = 2) +
+  theme_bw() + 
+  labs(x = "Perception of Corruption Contribution as Proportion of Happiness",
+       y = "Happiness Score (0-10)",
+       title = "Comparing Corruption Impact on Happiness (Western EU vs Sub-Sahara)") + 
+  theme(plot.title = element_text(size = 16),
+        legend.position = "none")  +
+  scale_color_manual(values = c("#78C091","#955737")) 
