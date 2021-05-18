@@ -1,0 +1,106 @@
+---
+title: "Other Datasets"
+author: "Len Huang"
+date: "5/18/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(tidyr)
+library(tidyverse)
+setwd("~/Coding/School/73265/73265-Final-Project")
+```
+
+# Combining Datasets
+
+## Preparing Our Data
+
+Dataset from here: https://www.kaggle.com/kumarajarshi/life-expectancy-who. We 
+keep the columns: country, life expectancy, and gdp per capita.
+
+```{r}
+life <- read_csv("life.csv")
+life <- life[c(1,4,17)]
+life <- drop_na(life)
+```
+
+We group the data together by averaging out each country's information. These
+will be aggregated over the years from 2000 - 2015
+
+```{r}
+life <- aggregate(life[, 2:3], list(life$Country), mean)
+names(life) <- c("Country", "LifeExpectancy", "GDPperCapita")
+```
+
+Do the same for our happiness dataset:
+
+```{r}
+data2015 <- read_csv("archive/2015.csv")
+data2019 <- read_csv("archive/2019.csv")
+names(data2015) <- c("Country", "Region", "Rank", "Happiness", "SE",
+                     "Economy", "Social", "Health", "Freedom", "Trust",
+                     "Generosity", "Dystopia")
+names(data2019) <- c("Rank", "Country", "Happiness", "Economy", "Social",
+                     "Health", "Freedom", "Generosity", "Trust")
+data2015 <- data2015 %>% select("Country", "Happiness", "Economy", "Health")
+data2019 <- data2019 %>% select("Country", "Happiness", "Economy", "Health")
+
+databoth <- rbind(data2015, data2019)
+
+databoth <- aggregate(databoth[, 2:4], list(databoth$Country), mean)
+
+names(databoth) <- c("Country", "Happiness", "EconomyContr", "HealthContr")
+```
+
+Now let's try to combine our dataset from happiness with our dataset of life
+expectancy and gdp per capita.
+
+```{r}
+data <- merge(life, databoth, by="Country")
+data
+```
+
+## Exploring Our Data
+
+Let's make this longer and more graphable 
+
+```{r}
+data %>%
+  select(-c("Country")) %>%
+  arrange(desc(Happiness)) %>%
+  pivot_longer(cols = c("LifeExpectancy", "GDPperCapita", "Happiness", 
+                        "EconomyContr", "HealthContr"),
+               names_to = "Category",
+               values_to = "Score")
+```
+
+Just kidding may not need that, but let's try happiness vs contribution and 
+happiness vs actual for both categories (GDP / Health).
+
+### Health
+
+```{r}
+data %>% ggplot(aes(x=LifeExpectancy, y=Happiness)) + 
+  geom_point() + geom_smooth() + 
+  theme_bw() +
+  ggtitle("Happiness Score vs Life Expectancy") 
+
+data %>% ggplot(aes(x=HealthContr, y=Happiness)) + 
+  geom_point() + geom_smooth() + 
+  theme_bw() +
+  ggtitle("Happiness Score vs WHO Contribution Score for Health") 
+```
+
+### GDP
+
+```{r}
+data %>% ggplot(aes(x=GDPperCapita, y=Happiness)) + 
+  geom_point() + geom_smooth() + 
+  theme_bw() +
+  ggtitle("Happiness Score vs GDP Per Capita") 
+data %>% ggplot(aes(x=EconomyContr, y=Happiness)) + 
+  geom_point() + geom_smooth() + 
+  theme_bw() +
+  ggtitle("Happiness Score vs WHO Contribution Score for Economy") 
+```
