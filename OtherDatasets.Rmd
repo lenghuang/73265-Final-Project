@@ -58,7 +58,6 @@ expectancy and gdp per capita.
 
 ```{r}
 data <- merge(life, databoth, by="Country")
-data
 ```
 
 ## Exploring Our Data
